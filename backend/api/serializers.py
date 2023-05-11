@@ -1,24 +1,14 @@
-import base64
-
 from djoser.serializers import UserSerializer, UserCreateSerializer
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework import status
 from django.core.files.base import ContentFile
 
+import drf_extra_fields.fields
+
 from recipes.models import (Tag, Recipe, IngredientInRecipe,
                             ShoppingCart, Favorite, Ingredient)
 from users.models import User, Follow
-
-
-class Base64ImageField(serializers.ImageField):
-    def to_internal_value(self, data):
-        if isinstance(data, str) and data.startswith('data:image'):
-            format, imgstr = data.split(';base64,')
-            ext = format.split('/')[-1]
-            data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
-
-        return super().to_internal_value(data)
 
 
 class UserGetSerializer(UserSerializer):
@@ -60,18 +50,6 @@ class UserWithRecipesSerializer(UserGetSerializer):
         )
 
     def validate(self, data):
-        author = self.instance
-        user = self.context.get('request').user
-        if Follow.objects.filter(author=author, user=user).exists():
-            raise ValidationError(
-                detail='Вы уже подписаны на этого пользователя!',
-                code=status.HTTP_400_BAD_REQUEST
-            )
-        if user == author:
-            raise ValidationError(
-                detail='Нельзя подписаться на самого себя!',
-                code=status.HTTP_400_BAD_REQUEST
-            )
         return data
 
     def get_recipes_count(self, obj):
@@ -81,9 +59,7 @@ class UserWithRecipesSerializer(UserGetSerializer):
         request = self.context.get('request')
         context = {'request': request}
         recipe_limit = request.query_params.get('recipe_limit')
-        queryset = object.recipes.all()
-        if recipe_limit:
-            queryset = queryset[:int(recipe_limit)]
+        queryset = object.recipes.all().limit(int(recipe_limit)) if recipe_limit else object.recipes.all()
 
         return RecipeShortSerializer(queryset, context=context, many=True).data
 
@@ -140,17 +116,14 @@ class IngredientSerializer(serializers.ModelSerializer):
 class IngredientInRecipeSerializer(serializers.ModelSerializer):
     """Сериализатор для отображения ингредиентов в рецептах."""
 
-    id = serializers.PrimaryKeyRelatedField(
-        queryset=Ingredient.objects.all(),
+    id = serializers.ReadOnlyField(
         source='ingredient.id'
     )
-    name = serializers.CharField(
+    name = serializers.ReadOnlyField(
         source='ingredient.name',
-        read_only=True
     )
-    measurement_unit = serializers.CharField(
+    measurement_unit = serializers.ReadOnlyField(
         source='ingredient.measurement_unit',
-        read_only=True
     )
 
     class Meta:
@@ -166,9 +139,9 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class RecipeGetSerializer(serializers.ModelSerializer):
-    '''Сериализатор для модели Recipe.
+    """Сериализатор для модели Recipe.
  Для GET запросов к эндпоинтам /recipe/ и /recipe/id/.
-    '''
+    """
     tags = TagSerializer(many=True, read_only=True)
     author = UserGetSerializer()
     ingredients = IngredientInRecipeSerializer(
@@ -179,6 +152,10 @@ class RecipeGetSerializer(serializers.ModelSerializer):
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
 
+    image = drf_extra_fields.fields.Base64ImageField(
+        required=False,
+        allow_null=True
+    )
     class Meta:
         model = Recipe
         fields = (
@@ -238,7 +215,7 @@ class RecipePostSerializer(serializers.ModelSerializer):
         source='IngredientsInRecipe',
         many=True,
     )
-    image = Base64ImageField(
+    image = drf_extra_fields.fields.Base64ImageField(
         required=False,
         allow_null=True
     )
@@ -320,10 +297,9 @@ class RecipePostSerializer(serializers.ModelSerializer):
         instance.tags.clear()
         instance.tags.add(*tags)
         instance.ingredients.clear()
-        recipe = instance
-        self.save_ingredients(recipe, ingredients)
+        self.save_ingredients(ingredients)
         instance.save()
-        return instance
+        return super().update(instance, validated_data)
 
     def to_representation(self, instance):
         serializer = RecipeGetSerializer(
