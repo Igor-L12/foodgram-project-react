@@ -1,4 +1,4 @@
-ame: Django-app workflow
+Name: Django-app workflow
 
 on: [push]
 
