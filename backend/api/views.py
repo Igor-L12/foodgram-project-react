@@ -1,17 +1,10 @@
 from django.contrib.auth import update_session_auth_hash
-from django.db.models import F, Sum
+from django.db.models import Sum
 from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.serializers import SetPasswordSerializer
-from recipes.models import (
-    AbstractFavoriteShoppingCart,
-    Favorite,
-    Ingredient,
-    IngredientInRecipe,
-    Recipe,
-    ShoppingCart,
-    Tag,
-)
+from recipes.models import (Favorite, Ingredient, IngredientInRecipe, Recipe,
+                            ShoppingCart, Tag)
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -22,19 +15,12 @@ from .action import post_and_delete_action
 from .filters import IngredientFilter, RecipeFilter
 from .pagination import CustomPagination
 from .permissions import IsAuthorOrAdminOrReadOnly
-from .serializers import (
-    FavoriteSerializer,
-    IngredientSerializer,
-    RecipeGetSerializer,
-    RecipePostSerializer,
-    RecipeShortSerializer,
-    ShoppingCartSerializer,
-    SubscriptionSerializer,
-    TagSerializer,
-    UserGetSerializer,
-    UserPostSerializer,
-    UserWithRecipesSerializer,
-)
+from .serializers import (FavoriteSerializer, IngredientSerializer,
+                          RecipeGetSerializer, RecipePostSerializer,
+                          RecipeShortSerializer, ShoppingCartSerializer,
+                          SubscriptionSerializer, TagSerializer,
+                          UserGetSerializer, UserPostSerializer,
+                          UserWithRecipesSerializer)
 
 
 class CustomUserViewSet(
@@ -120,8 +106,9 @@ class CustomUserViewSet(
 
     @action(detail=False, permission_classes=[IsAuthenticated])
     def subscriptions(self, request):
-        users = User.objects.filter(following__user=request.user).prefetch_related(
-            "recipes"
+        users = (
+            User.objects.filter(following__user=request.user)
+            .prefetch_related("recipes")
         )
         page = self.paginate_queryset(users)
 
@@ -226,7 +213,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(["POST", "DELETE"], detail=True)
     def shopping_cart(self, request, **kwargs):
         return post_and_delete_action(
-            self, request, Recipe, ShoppingCart, ShoppingCartSerializer, **kwargs
+            self, request, Recipe, ShoppingCart,
+            ShoppingCartSerializer, **kwargs
         )
 
     @staticmethod
@@ -246,7 +234,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["GET"])
     def download_shopping_cart(self, request):
         ingredients = (
-            IngredientInRecipe.objects.filter(recipe__shopping_list__user=request.user)
+            IngredientInRecipe.objects.filter(
+                recipe__shopping_list__user=request.user
+            )
             .order_by("ingredient__name")
             .values("ingredient__name", "ingredient__measurement_unit")
             .annotate(amount=Sum("amount"))

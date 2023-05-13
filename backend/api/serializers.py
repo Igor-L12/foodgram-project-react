@@ -1,5 +1,4 @@
 import drf_extra_fields.fields
-from django.core.files.base import ContentFile
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from recipes.models import (
     Favorite,
@@ -9,8 +8,7 @@ from recipes.models import (
     ShoppingCart,
     Tag,
 )
-from rest_framework import serializers, status
-from rest_framework.exceptions import ValidationError
+from rest_framework import serializers
 from users.models import Follow, User
 
 
