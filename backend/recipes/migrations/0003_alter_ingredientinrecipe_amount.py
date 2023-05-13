@@ -5,15 +5,21 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('recipes', '0002_auto_20230511_1502'),
+        ("recipes", "0002_auto_20230511_1502"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='ingredientinrecipe',
-            name='amount',
-            field=models.PositiveSmallIntegerField(validators=[django.core.validators.MinValueValidator(1, 'Колличество ингредиента в рецепте не должно быть менее 1.')], verbose_name='Колличество ингредиента в данном рецепте.'),
+            model_name="ingredientinrecipe",
+            name="amount",
+            field=models.PositiveSmallIntegerField(
+                validators=[
+                    django.core.validators.MinValueValidator(
+                        1, "Колличество ингредиента в рецепте не должно быть менее 1."
+                    )
+                ],
+                verbose_name="Колличество ингредиента в данном рецепте.",
+            ),
         ),
     ]

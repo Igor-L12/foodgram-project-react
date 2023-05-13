@@ -4,34 +4,37 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('recipes', '0009_auto_20230513_1315'),
+        ("recipes", "0009_auto_20230513_1315"),
     ]
 
     operations = [
         migrations.RemoveConstraint(
-            model_name='favorite',
-            name='recipes_favorite_unique',
+            model_name="favorite",
+            name="recipes_favorite_unique",
         ),
         migrations.RemoveConstraint(
-            model_name='shoppingcart',
-            name='recipes_shoppingcart_unique',
+            model_name="shoppingcart",
+            name="recipes_shoppingcart_unique",
         ),
         migrations.RemoveField(
-            model_name='favorite',
-            name='is_shopping_cart',
+            model_name="favorite",
+            name="is_shopping_cart",
         ),
         migrations.RemoveField(
-            model_name='shoppingcart',
-            name='is_shopping_cart',
+            model_name="shoppingcart",
+            name="is_shopping_cart",
         ),
         migrations.AddConstraint(
-            model_name='favorite',
-            constraint=models.UniqueConstraint(fields=('user', 'recipe'), name='recipes_favorite_unique'),
+            model_name="favorite",
+            constraint=models.UniqueConstraint(
+                fields=("user", "recipe"), name="recipes_favorite_unique"
+            ),
         ),
         migrations.AddConstraint(
-            model_name='shoppingcart',
-            constraint=models.UniqueConstraint(fields=('user', 'recipe'), name='recipes_shoppingcart_unique'),
+            model_name="shoppingcart",
+            constraint=models.UniqueConstraint(
+                fields=("user", "recipe"), name="recipes_shoppingcart_unique"
+            ),
         ),
     ]

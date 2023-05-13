@@ -4,22 +4,26 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('recipes', '0004_auto_20230512_2303'),
+        ("recipes", "0004_auto_20230512_2303"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='ingredientinrecipe',
-            options={'verbose_name': 'Ингредиент в рецепте ', 'verbose_name_plural': 'Ингредиенты в рецепте'},
+            name="ingredientinrecipe",
+            options={
+                "verbose_name": "Ингредиент в рецепте ",
+                "verbose_name_plural": "Ингредиенты в рецепте",
+            },
         ),
         migrations.RemoveConstraint(
-            model_name='favorite',
-            name='unique_favorite_recipe_shopping_cart',
+            model_name="favorite",
+            name="unique_favorite_recipe_shopping_cart",
         ),
         migrations.AddConstraint(
-            model_name='favorite',
-            constraint=models.UniqueConstraint(fields=('user', 'recipe'), name='unique_favorite'),
+            model_name="favorite",
+            constraint=models.UniqueConstraint(
+                fields=("user", "recipe"), name="unique_favorite"
+            ),
         ),
     ]

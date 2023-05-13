@@ -22,15 +22,15 @@ class Command(BaseCommand):
 
         tag_list = []
         count = 0
-        for row in DictReader(open('./data/tags.csv', encoding='utf-8')):
+        for row in DictReader(open("./data/tags.csv", encoding="utf-8")):
             tag = Tag(
-                name=row['name'],
-                color=row['color'],
-                slug=row['slug'],
+                name=row["name"],
+                color=row["color"],
+                slug=row["slug"],
             )
             tag_list.append(tag)
             count += 1
 
         Tag.objects.bulk_create(tag_list)
 
-        logger.info(f'Успешно загружено {count} тэгов')
+        logger.info(f"Успешно загружено {count} тэгов")

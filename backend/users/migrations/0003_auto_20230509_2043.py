@@ -5,40 +5,52 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('users', '0002_auto_20230509_1613'),
+        ("users", "0002_auto_20230509_1613"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='user',
-            name='email',
-            field=models.EmailField(max_length=254, unique=True, verbose_name='email'),
+            model_name="user",
+            name="email",
+            field=models.EmailField(max_length=254, unique=True, verbose_name="email"),
         ),
         migrations.AlterField(
-            model_name='user',
-            name='first_name',
-            field=models.CharField(max_length=150, verbose_name='Имя'),
+            model_name="user",
+            name="first_name",
+            field=models.CharField(max_length=150, verbose_name="Имя"),
         ),
         migrations.AlterField(
-            model_name='user',
-            name='last_name',
-            field=models.CharField(max_length=150, verbose_name='Фамилия'),
+            model_name="user",
+            name="last_name",
+            field=models.CharField(max_length=150, verbose_name="Фамилия"),
         ),
         migrations.AlterField(
-            model_name='user',
-            name='password',
-            field=models.CharField(max_length=150, verbose_name='Пароль'),
+            model_name="user",
+            name="password",
+            field=models.CharField(max_length=150, verbose_name="Пароль"),
         ),
         migrations.AlterField(
-            model_name='user',
-            name='role',
-            field=models.CharField(blank=True, choices=[('user', 'user'), ('admin', 'admin'), ('guest', 'guest')], default='user', max_length=50, verbose_name='Роль пользователя'),
+            model_name="user",
+            name="role",
+            field=models.CharField(
+                blank=True,
+                choices=[("user", "user"), ("admin", "admin"), ("guest", "guest")],
+                default="user",
+                max_length=50,
+                verbose_name="Роль пользователя",
+            ),
         ),
         migrations.AlterField(
-            model_name='user',
-            name='username',
-            field=models.CharField(error_messages={'unique': 'A user with that username already exists.'}, help_text='Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.', max_length=150, unique=True, validators=[django.contrib.auth.validators.UnicodeUsernameValidator()], verbose_name='username'),
+            model_name="user",
+            name="username",
+            field=models.CharField(
+                error_messages={"unique": "A user with that username already exists."},
+                help_text="Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.",
+                max_length=150,
+                unique=True,
+                validators=[django.contrib.auth.validators.UnicodeUsernameValidator()],
+                verbose_name="username",
+            ),
         ),
     ]
