@@ -144,21 +144,26 @@ class IngredientInRecipe(models.Model):
                 name='unique_ingredient_in_recipe'
             )
         ]
-        verbose_name = 'Ингридиент в рецепте '
-        verbose_name_plural = 'Ингридиенты в рецепте'
+        verbose_name = 'Ингредиент в рецепте '
+        verbose_name_plural = 'Ингредиенты в рецепте'
 
     def __str__(self):
-        return f'{self.ingredient.name} в рецепте {self.recipe.name}'
+        return (
+            f'{self.ingredient.name} :: {self.ingredient.measurement_unit}'
+            f' - {self.amount} '
+        )
 
 
 class AbstractFavoriteShoppingCart(models.Model):
     user = models.ForeignKey(
         User,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        verbose_name='Пользователь',
     )
     recipe = models.ForeignKey(
         Recipe,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        verbose_name='Рецепт',
     )
 
     class Meta:
@@ -166,23 +171,25 @@ class AbstractFavoriteShoppingCart(models.Model):
         constraints = [
             UniqueConstraint(
                 fields=['user', 'recipe'],
-                name='unique_favorite_shopping_cart'
+                name='%(app_label)s_%(class)s_unique'
             )
         ]
 
     def __str__(self):
-        return f'{self.recipe.name} ({self._meta.verbose_name}) у {self.user.username}'
+        return f'{self.user} :: {self.recipe}'
 
 
 class Favorite(AbstractFavoriteShoppingCart):
     """Избранные рецепты."""
-    class Meta:
+    class Meta(AbstractFavoriteShoppingCart.Meta):
+        default_related_name = 'favorites'
         verbose_name = 'Избранный рецепт'
         verbose_name_plural = 'Избранные рецепты'
 
 
 class ShoppingCart(AbstractFavoriteShoppingCart):
     """Рецепты, добавленные в список покупок."""
-    class Meta:
+    class Meta(AbstractFavoriteShoppingCart.Meta):
+        default_related_name = 'shopping_list'
         verbose_name = 'Рецепт в списке покупок'
         verbose_name_plural = 'Рецепты в списке покупок'

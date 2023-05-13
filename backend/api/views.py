@@ -10,7 +10,7 @@ from rest_framework.response import Response
 
 from djoser.serializers import SetPasswordSerializer
 
-from recipes.models import (Tag, Recipe, Favorite,
+from recipes.models import (AbstractFavoriteShoppingCart,Tag, Recipe, Favorite,
                             ShoppingCart, IngredientInRecipe,
                             Ingredient)
 from users.models import User, Follow
@@ -36,7 +36,7 @@ class CustomUserViewSet(
     Управление пользователями и подписками.
     Эндпоинты:
     /api/users/
-    GET запрос: полусить список всех зарегистрированных пользователей
+    GET запрос: получить список всех зарегистрированных пользователей
     Подключена пагинация.
     POST запрос: создать нового пользователя. Доступно всем.
 
@@ -229,27 +229,24 @@ class RecipeViewSet(viewsets.ModelViewSet):
             **kwargs
         )
 
-    @action(
-        detail=False,
-        permission_classes=[IsAuthenticated, ]
-    )
-    def download_shopping_cart(self, request):
-        user = request.user
-        ingredients = IngredientInRecipe.objects.filter(
-            recipe__shopping_cart__user=user).values(
-            name=F('ingredient__name'),
-            measurement_unit=F('ingredient__measurement_unit')).annotate(
-            amount=Sum('amount')
-        )
-        data = []
+    @staticmethod
+    def send_message(ingredients):
+        shopping_list = 'Список покупок:'
         for ingredient in ingredients:
-            data.append(
-                f'{ingredient["name"]} - '
-                f'{ingredient["amount"]} '
-                f'{ingredient["measurement_unit"]}'
-            )
-        content = 'Список покупок:\n\n' + '\n'.join(data)
-        filename = 'Shopping_cart.txt'
-        request = HttpResponse(content, content_type='text/plain')
-        request['Content-Disposition'] = f'attachment; filename={filename}'
-        return request
+            shopping_list += (
+                f"\n{ingredient['ingredient__name']} "
+                f"({ingredient['ingredient__measurement_unit']}) - "
+                f"{ingredient['amount']}")
+        filename = 'shopping_list.txt'
+        response = HttpResponse(shopping_list, content_type='text/plain')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+
+    @action(detail=False, methods=['GET'])
+    def download_shopping_cart(self, request):
+        ingredients = IngredientInRecipe.objects.filter(
+            recipe__shopping_list__user=request.user
+        ).order_by('ingredient__name').values(
+            'ingredient__name', 'ingredient__measurement_unit'
+        ).annotate(amount=Sum('amount'))
+        return self.send_message(ingredients)

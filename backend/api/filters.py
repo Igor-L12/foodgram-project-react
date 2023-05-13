@@ -1,6 +1,6 @@
 from django_filters import rest_framework
 
-from recipes.models import Ingredient, Recipe, ShoppingCart
+from recipes.models import Favorite, Ingredient, Recipe, ShoppingCart
 
 
 class IngredientFilter(rest_framework.FilterSet):
@@ -15,7 +15,7 @@ class IngredientFilter(rest_framework.FilterSet):
 class RecipeFilter(rest_framework.FilterSet):
     """Фильтр для рецептов: по избранному, списку покупок, автору и тегам."""
     is_favorited = rest_framework.BooleanFilter(
-        method='is_favorited_method'
+        method='filter_is_favorited__in'
     )
     is_in_shopping_cart = rest_framework.BooleanFilter(
         method='is_in_shopping_cart_method'
@@ -30,8 +30,11 @@ class RecipeFilter(rest_framework.FilterSet):
 
     def filter_is_favorited__in(self, queryset, name, value):
         if value:
-            return queryset.filter(favorite__user=self.request.user)
+            favorites = Favorite.objects.filter(user=self.request.user)
+            recipes = [item.recipe.id for item in favorites]
+            return queryset.filter(id__in=recipes)
         return queryset
+
 
     def is_in_shopping_cart_method(self, queryset, name, value):
         shopping_cart = ShoppingCart.objects.filter(user=self.request.user)
